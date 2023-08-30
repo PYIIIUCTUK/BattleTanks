@@ -36,6 +36,11 @@ namespace BattleTanks
         public int BreakWatchShield { get; set; } = 5;
         public bool BreakShield { get; set; } = true;
 
+        public Stopwatch watchSpeed { get; set; } = new Stopwatch();
+        public int BreakWatchSpeed { get; set; } = 5;
+        public bool BreakSpeed { get; set; } = true;
+        public double SpeedUp { get; set; } = 1.25;
+
         public bool Blocks { get; set; } = false;
         public bool BigShot { get; set; } = false;
 

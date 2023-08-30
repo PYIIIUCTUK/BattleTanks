@@ -73,6 +73,8 @@ namespace BattleTanks
             bitmapEquips.Add(new Bitmap("Sprites/Shield.png"));
             NamesEquip.Add("blocks", 3);
             bitmapEquips.Add(new Bitmap("Sprites/Blocks.png"));
+            NamesEquip.Add("speed", 4);
+            bitmapEquips.Add(new Bitmap("Sprites/Speed.png"));
 
             bitmapTanks.Add(new Bitmap("Sprites/Tank1.png"));
             bitmapTanks.Add(new Bitmap("Sprites/Tank2.png"));
@@ -119,9 +121,9 @@ namespace BattleTanks
                 map.Add(line);
             }
 
-            players.Add(new Player(0, Keys.Up, Keys.Down, Keys.Left, Keys.Right, Keys.ControlKey,
+            players.Add(new Player(0, Keys.W, Keys.S, Keys.A, Keys.D, Keys.Space,
                 (int)(S * 0.6), (int)(S * 0.6), S / 10));
-            players.Add(new Player(1, Keys.W, Keys.S, Keys.A, Keys.D, Keys.Space,
+            players.Add(new Player(1, Keys.Up, Keys.Down, Keys.Left, Keys.Right, Keys.ControlKey,
                 (int)(S * 0.6), (int)(S * 0.6), S / 10));
 
             for(int i = 0; i < players.Count; i++)
@@ -189,6 +191,13 @@ namespace BattleTanks
                         players[i].Width, players[i].Height);
                     e.Graphics.ResetTransform();
 
+                    if (!players[i].BreakSpeed)
+                    {
+                        Pen pen = new Pen(Brushes.Green, 6);
+                        e.Graphics.DrawRectangle(pen, players[i].X, players[i].Y,
+                       players[i].Width, players[i].Height);
+                    }
+
                     if (!players[i].BreakShield)
                     {
                         Pen pen = new Pen(Brushes.Orange, 3);
@@ -222,6 +231,13 @@ namespace BattleTanks
                     e.Graphics.DrawImage(bitmapTanks[1], players[i].X, players[i].Y,
                         players[i].Width, players[i].Height);
                     e.Graphics.ResetTransform();
+
+                    if (!players[i].BreakSpeed)
+                    {
+                        Pen pen = new Pen(Brushes.Green, 6);
+                        e.Graphics.DrawRectangle(pen, players[i].X, players[i].Y,
+                       players[i].Width, players[i].Height);
+                    }
 
                     if (!players[i].BreakShield)
                     {
@@ -317,6 +333,18 @@ namespace BattleTanks
 
             for (int i = 0; i < players.Count; i++)
             {
+                if (!players[i].BreakSpeed)
+                {
+                    elapsedTime = players[i].watchSpeed.Elapsed;
+                    if (elapsedTime.Seconds >= players[i].BreakWatchSpeed)
+                    {
+                        players[i].BreakSpeed = true;
+                        players[i].watchSpeed.Stop();
+
+                        players[i].Speed = (int)(players[i].Speed / players[i].SpeedUp);
+                    }
+                }
+
                 if (!players[i].BreakShield)
                 {
                     elapsedTime = players[i].watchShield.Elapsed;
@@ -344,31 +372,32 @@ namespace BattleTanks
                         players[i].Blocks = false;
 
                         int rotation = players[i].Rotation;
-                        int x = 0, y = 0;
+                        int x = (players[i].X + players[i].Width / 2) / S;
+                        int y = (players[i].Y + players[i].Height / 2) / S;
                         switch (rotation)
                         {
                             case 1:
                             {
-                                x = players[i].X / S - 1;
-                                y = players[i].Y / S - 1;
+                                x--;
+                                y--;
                                 break;
                             }
                             case 2:
                             {
-                                x = players[i].X / S + 1;
-                                y = players[i].Y / S - 1;
+                                x++;
+                                y--;
                                 break;
                             }
                             case 3:
                             {
-                                x = players[i].X / S - 1;
-                                y = players[i].Y / S + 1;
+                                x--;
+                                y++;
                                 break;
                             }
                             case 4:
                             {
-                                x = players[i].X / S - 1;
-                                y = players[i].Y / S - 1;
+                                x--;
+                                y--;
                                 break;
                             }
                         }
@@ -594,6 +623,7 @@ namespace BattleTanks
                     {
                         players[i].curHealth -= bullet.Damage;
                     }
+                    else { players[i].BreakShield = true; }
                     return true;
                 }
             }
@@ -721,6 +751,14 @@ namespace BattleTanks
             {
                 player.Blocks = true;
             }
+            else if (cell.Equip == NamesEquip["speed"])
+            {
+                player.Speed = (int)(player.Speed * player.SpeedUp);
+
+                player.watchSpeed.Reset();
+                player.watchSpeed.Start();
+                player.BreakSpeed = false;
+            }
             map[cell.Y / S][cell.X / S] = new Cell(cell.X / S, cell.Y / S);
         }
 
@@ -791,6 +829,7 @@ namespace BattleTanks
             {
                 PlayerRespawn(players[0]);
                 if (players[0].BreakShield) { players[0].curHealth--; }
+                else { players[0].BreakShield = true; }
                 if (map[players[0].Y / S][players[0].X / S].Type != NamesCell["space"])
                 {
                     map[players[0].Y / S][players[0].X / S] = new Cell(players[0].X, players[0].Y);
@@ -800,6 +839,7 @@ namespace BattleTanks
             {
                 PlayerRespawn(players[1]);
                 if (players[1].BreakShield) { players[1].curHealth--; }
+                else { players[1].BreakShield = true; }
                 if (map[players[1].Y / S][players[1].X / S].Type != NamesCell["space"])
                 {
                     map[players[1].Y / S][players[1].X / S] = new Cell(players[1].X, players[1].Y);
