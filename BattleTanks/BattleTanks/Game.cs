@@ -495,7 +495,7 @@ namespace BattleTanks
             }
 
             elapsedTime = watchMapCut.Elapsed;
-            if (elapsedTime.Minutes >= 1)
+            if (elapsedTime.Seconds >= 40)
             {
                 watchMapCut.Reset();
                 if (MapCut()) { watchMapCut.Start(); }
